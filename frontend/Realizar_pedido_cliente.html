@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realizar Pedido</title>
+    <link rel="stylesheet" href="pedidos.css">
+</head>
+<body>
+    <header>
+        <h1>Realizar Pedido</h1>
+    </header>
+
+    <div class="contenedor">
+        <h2>Selecciona tus productos</h2>
+        <div class="productos-disponibles">
+            <!-- Aquí irán los productos que el cliente puede seleccionar -->
+            <div class="producto" data-id="1" data-nombre="Hamburguesa" data-precio="500">
+                <p>Hamburguesa - $500</p>
+                <button class="agregar-carrito">Agregar al carrito</button>
+            </div>
+            <div class="producto" data-id="2" data-nombre="Papas Fritas" data-precio="200">
+                <p>Papas Fritas - $200</p>
+                <button class="agregar-carrito">Agregar al carrito</button>
+            </div>
+            <!-- Añadir más productos según sea necesario -->
+        </div>
+
+        <h2>Tu Pedido</h2>
+        <div class="carrito">
+            <ul id="lista-carrito">
+                <!-- Aquí se mostrarán los productos añadidos al carrito -->
+            </ul>
+            <p>Total: <span id="total-pedido">$0</span></p>
+            <button id="realizar-pedido">Realizar Pedido</button>
+        </div>
+    </div>
+
+    <script src="cliente.js"></script>
+</body>
+</html>

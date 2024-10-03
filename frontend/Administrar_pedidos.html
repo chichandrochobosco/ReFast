@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Pedidos</title>
+    <link rel="stylesheet" href="pedidos.css">
+</head>
+<body>
+    <header>
+        <h1>Pedilo ya</h1>
+        <nav>
+            <ul class="menu">
+                <li><a href="Ingresar_productos.html">Productos</a></li>
+                <li><a href="Administrar_pedidos.html">Pedidos</a></li>
+                <li><a href="pedidos_cliente.html">Cliente</a></li>
+            </ul>
+        </nav>
+        <button id="btn-cerrar" class="btn-cerrar">Cerrar</button>
+    </header>
+
+
+    <div class="conteiner">
+        <header>
+            <h1>Pedidos</h1>
+        </header>
+    </div>
+
+    <div class="contenedor">
+        <h2>Pedidos</h2>
+        <button class="btn-agregar">+ Agregar</button>
+        <table id="tabla-pedidos">
+            <thead>
+                <tr>
+                    <th>N° Pedido</th>
+                    <th>Cliente</th>
+                    <th>Producto/s</th>
+                    <th>Método de pago</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Aquí se mostrarán los pedidos realizados por los clientes -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Ventana emergente para detalles del pedido -->
+    <div class="ventana-emergente" id="ventana-emergente-detalles">
+        <div class="ventana-emergente-contenido">
+            <button class="btn-cerrar-ventana-detalles">Cerrar</button>
+            <h2>Detalles del pedido</h2>
+            <p id="detalle-id">ID: <span></span></p>
+            <p id="detalle-cliente">Cliente: <span></span></p>
+            <p id="detalle-productos">Productos: <span></span></p>
+            <p id="detalle-metodo-pago">Método de pago: <span></span></p>
+            <p id="detalle-total">Total: <span></span></p>
+        </div>
+    </div>
+
+   
+
+    <!-- Ventana emergente para crear un nuevo pedido -->
+    <div class="ventana-emergente" id="ventana-emergente-crear">
+        <div class="ventana-emergente-contenido">
+            <button class="btn-cerrar-ventana-crear">Cerrar</button>
+            <h2>Crear Nuevo Pedido</h2>
+            <label for="input-id">ID Pedido:</label>
+            <input type="number" id="input-id" required>
+            <label for="input-cliente">Cliente:</label>
+            <input type="text" id="input-cliente" required>
+            <label for="input-productos">Productos:</label>
+            <input type="text" id="input-productos" required>
+            <label for="input-metodo-pago">Método de Pago:</label>
+            <select id="input-metodo-pago" required>
+                <option value="Mercado Pago">Mercado Pago</option>
+                <option value="Efectivo">Efectivo</option>
+            </select>
+            <label for="input-total">Total:</label>
+            <input type="number" id="input-total" required>
+            <button id="crear-pedido">Crear Pedido</button>
+        </div>
+    </div>
+
+    <div id="ventana-emergente-notificar" class="ventana-emergente" style="display: none;">
+        <div class="ventana-emergente-contenido">
+            <button class="btn-cerrar-ventana-notificar">Cerrar</button>
+            <h2>Notificación enviada</h2>
+            <p>El cliente ha sido notificado exitosamente.</p>
+        </div>
+    </div>
+
+
+    <!-- Ventana emergente para advertencia de ID repetido -->
+    <div class="ventana-emergente" id="ventana-emergente-advertencia">
+        <div class="ventana-emergente-contenido">
+            <button class="btn-cerrar-ventana-advertencia">Cerrar</button>
+            <h2>Advertencia</h2>
+            <p id="advertencia-texto">El número de pedido ya existe.</p>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

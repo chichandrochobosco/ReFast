@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingreso/Edición de Productos</title>
+    <link rel="stylesheet" href="productos.css">
+</head>
+<body>
+    <header>
+        <h1>Pedilo ya</h1>
+        <nav>
+            <ul class="menu">
+                <li><a href="Ingresar_productos.html">Productos</a></li>
+                <li><a href="Administrar_pedidos.html">Pedidos</a></li>
+                <li><a href="pedidos_cliente.html">Cliente</a></li>
+            </ul>
+        </nav>
+        <button id="btn-cerrar" class="btn-cerrar">Cerrar</button>
+    </header>
+
+    <div class="contenedor">
+        <header>
+            <h1>Gestión de Productos</h1>
+            <button class="btn-cerrar">Cerrar</button>
+        </header>
+
+        <div class="formulario-producto">
+            <div class="formulario-izquierda">
+                <div class="imagen-placeholder">+</div>
+                <input type="file" id="imagen-producto">
+            </div>
+            <div class="formulario-derecha">
+                <div class="grupo-formulario">
+                    <label for="categoria">Categoría</label>
+                    <select id="categoria" required>
+                        <option value="Almuerzo">Almuerzo</option>
+                        <option value="Desayuno">Desayuno</option>
+                        <option value="Golosinas">Golosinas</option>
+                        <option value="Snacks">Snacks</option>
+                        <option value="Bebidas">Bebidas</option>
+                    </select>
+                </div>                
+                <div class="grupo-formulario">
+                    <label for="cantidad">Cantidad</label>
+                    <input type="number" id="cantidad" placeholder="Ingrese la cantidad de productos que va a entrar en el sistema">
+                </div>
+                <div class="grupo-formulario">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" placeholder="Ingrese el nombre del producto">
+                </div>
+                <div class="grupo-formulario">
+                    <label for="precio">Precio</label>
+                    <input type="number" id="precio" placeholder="Ingrese el precio del prodcuto">
+                </div>
+                <div class="grupo-formulario">
+                    <label for="descripcion">Descripción</label>
+                    <textarea id="descripcion" placeholder="Ingrese la descripcion del producto"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="botones">
+            <button class="btn btn-guardar" onclick="guardarProducto()">GUARDAR</button>
+            <button class="btn btn-descartar" onclick="descartarProducto()">DESCARTAR</button>
+            <button class="btn btn-stock" onclick="eliminarTodosLosProductos()">ELIMINAR TODOS</button>
+        </div>
+
+        <div class="lista-productos"></div>
+    </div>
+
+    <!-- Ventana emergente para mensajes de error -->
+    <div class="ventana-emergente" id="ventana-error" style="display: none;">
+        <div class="ventana-emergente-contenido">
+            <p id="mensaje-error"></p>
+            <button onclick="cerrarVentanaError()">Cerrar</button>
+        </div>
+    </div>
+
+    <script src="scripts.js"></script>
+</body>
+</html>
