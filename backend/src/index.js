@@ -8,7 +8,7 @@ const cors = require('cors');
 const app = express();
 app.set("port", 4000);
 app.listen(app.get("port"));
-console.log("escuchando al puerto :) "+app.get("port"));
+console.log("escuchando al puerto :) " + app.get("port"));
 
 
 
@@ -20,25 +20,25 @@ app.use(express.json()); // Para parsear JSON
 
 // Middleware de autenticación y verificación de rol
 function verificarAdmin(req, res, next) {
-   const token = req.headers['authorization'];
- 
-   if (!token) {
-     return res.status(403).send({ message: 'Token no proporcionado.' });
-   }
- 
-   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-     if (err) {
-       return res.status(500).send({ message: 'Error al verificar el token.' });
-     }
- 
-     if (decoded.role !== 'admin') {
-       return res.status(403).send({ message: 'No autorizado. Solo los administradores pueden realizar esta acción.' });
-     }
- 
-     req.userId = decoded.id;
-     next();
-   });
- }
+  const token = req.headers['authorization'];
+
+  if (!token) {
+    return res.status(403).send({ message: 'Token no proporcionado.' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(500).send({ message: 'Error al verificar el token.' });
+    }
+
+    if (decoded.role !== 'admin') {
+      return res.status(403).send({ message: 'No autorizado. Solo los administradores pueden realizar esta acción.' });
+    }
+
+    req.userId = decoded.id;
+    next();
+  });
+}
 
 
 //rutas
@@ -46,11 +46,11 @@ function verificarAdmin(req, res, next) {
 
 //PRODUCTOS
 
-app.get("/menu", async (req, res) =>{
-   const connection = await database.getconnection();
-   const result = await connection.query("SELECT * from producto");
-   console.log(result); 
-} )
+app.get("/menu", async (req, res) => {
+  const connection = await database.getconnection();
+  const result = await connection.query("SELECT * from producto");
+  console.log(result);
+})
 
 /*app.get("/producto/:id", async (req, res) =>{
    const productId = req.params.id;
@@ -60,133 +60,136 @@ app.get("/menu", async (req, res) =>{
 } )*/
 
 app.get('/producto/:id', (req, res) => {
-   const productId = req.params.id;
- 
-   connection.query('SELECT * FROM productos WHERE id = ?', [productId], (error, results) => {
-     if (error) {
-       return res.status(500).send({ message: 'Error al obtener el producto' });
-     }
-     if (results.length === 0) {
-       return res.status(404).send({ message: 'Producto no encontrado' });
-     }
-     res.send(results[0]);
-   });
- });
+  const productId = req.params.id;
 
- app.delete('/producto/:id', verificarAdmin, (req, res) => {
-   const productId = req.params.id;
- 
-   connection.query('DELETE FROM productos WHERE id = ?', [productId], (error, results) => {
-     if (error) {
-       return res.status(500).send({ message: 'Error al eliminar el producto.' });
-     }
- 
-     if (results.affectedRows === 0) {
-       return res.status(404).send({ message: 'Producto no encontrado.' });
-     }
- 
-     res.send({ message: 'Producto eliminado correctamente.' });
-   });
- });
+  connection.query('SELECT * FROM productos WHERE id = ?', [productId], (error, results) => {
+    if (error) {
+      return res.status(500).send({ message: 'Error al obtener el producto' });
+    }
+    if (results.length === 0) {
+      return res.status(404).send({ message: 'Producto no encontrado' });
+    }
+    res.send(results[0]);
+  });
+});
 
- app.put('/producto/:id', verificarAdmin, (req, res) => {
-   const productId = req.params.id;
-   const { nombre, descripcion, precio, stock } = req.body;
- 
-   // Consulta para actualizar el producto
-   const query = `UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, stock = ? WHERE id = ?`;
- 
-   connection.query(query, [nombre, descripcion, precio, stock, productId], (error, results) => {
-     if (error) {
-       return res.status(500).send({ message: 'Error al actualizar el producto.' });
-     }
- 
-     if (results.affectedRows === 0) {
-       return res.status(404).send({ message: 'Producto no encontrado.' });
-     }
- 
-     res.send({ message: 'Producto actualizado correctamente.' });
-   });
- });
- 
- app.post('/producto', verificarAdmin, (req, res) => {
-   const { nombre, fecha_ingreso, categoria, cantidad, precio, descripcion, imagen } = req.body;
- 
-   // Validar que todos los campos requeridos estén presentes
-   if (!nombre || !fecha_ingreso || !categoria || !cantidad || !precio || !descripcion || !imagen) {
-     return res.status(400).send({ message: 'Todos los campos son obligatorios.' });
-   }
- 
-   // Consulta para insertar el nuevo producto
-   const query = `INSERT INTO productos (nombre, fecha_ingreso, categoria, cantidad, precio, descripcion, imagen)
+app.delete('/producto/:id', verificarAdmin, (req, res) => {
+  const productId = req.params.id;
+
+  connection.query('DELETE FROM productos WHERE id = ?', [productId], (error, results) => {
+    if (error) {
+      return res.status(500).send({ message: 'Error al eliminar el producto.' });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).send({ message: 'Producto no encontrado.' });
+    }
+
+    res.send({ message: 'Producto eliminado correctamente.' });
+  });
+});
+
+app.put('/producto/:id', verificarAdmin, (req, res) => {
+  const productId = req.params.id;
+  const { nombre, descripcion, precio, stock } = req.body;
+
+  // Consulta para actualizar el producto
+  const query = `UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, stock = ? WHERE id = ?`;
+
+  connection.query(query, [nombre, descripcion, precio, stock, productId], (error, results) => {
+    if (error) {
+      return res.status(500).send({ message: 'Error al actualizar el producto.' });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).send({ message: 'Producto no encontrado.' });
+    }
+
+    res.send({ message: 'Producto actualizado correctamente.' });
+  });
+});
+
+app.post('/producto', verificarAdmin, (req, res) => {
+  const { nombre, fecha_ingreso, categoria, cantidad, precio, descripcion, imagen } = req.body;
+
+  // Validar que todos los campos requeridos estén presentes
+  if (!nombre || !fecha_ingreso || !categoria || !cantidad || !precio || !descripcion || !imagen) {
+    return res.status(400).send({ message: 'Todos los campos son obligatorios.' });
+  }
+
+  // Consulta para insertar el nuevo producto
+  const query = `INSERT INTO productos (nombre, fecha_ingreso, categoria, cantidad, precio, descripcion, imagen)
                   VALUES (?, ?, ?, ?, ?, ?, ?)`;
- 
-   connection.query(query, [nombre, fecha_ingreso, categoria, cantidad, precio, descripcion, imagen], (error, results) => {
-     if (error) {
-       return res.status(500).send({ message: 'Error al agregar el producto.' });
-     }
- 
-     res.status(201).send({ message: 'Producto agregado exitosamente.', productoId: results.insertId });
-   });
- });
+
+  connection.query(query, [nombre, fecha_ingreso, categoria, cantidad, precio, descripcion, imagen], (error, results) => {
+    if (error) {
+      return res.status(500).send({ message: 'Error al agregar el producto.' });
+    }
+
+    res.status(201).send({ message: 'Producto agregado exitosamente.', productoId: results.insertId });
+  });
+});
 
 //PERFIL
 app.post('/usuario', async (req, res) => {
-   const { nombre, email, contrasena } = req.body;
-    const rol = 4;
-   // Validar que los campos requeridos estén presentes
-   if (!nombre || !email || !contrasena) {
-     return res.status(400).send({ message: 'Nombre, email y contraseña son obligatorios.' });
-   }
- 
-   // Hash de la contraseña
-   try {
-     const hashedPassword = await bcrypt.hash(contrasena, 10);
- 
-     // Fecha de registro
-     //const fechaRegistro = new Date().toISOString().slice(0, 10);
- 
-     // Consulta para insertar el nuevo usuario
-     const query = `call sp_agregar_rol(?, ?, ?, ?)`;
- 
-     connection.query(query, [nombre, hashedPassword, rol, email], (error, results) => {
-       if (error) {
-         // Si el email ya existe, enviamos un error
-         if (error.code === 'ER_DUP_ENTRY') {
-           return res.status(409).send({ message: 'El email ya está registrado.' });
-         }
-         return res.status(500).send({ message: 'Error al crear el usuario.' });
-       }
- 
-       res.status(201).send({ message: 'Usuario creado exitosamente.', usuarioId: results.insertId });
-     });
-   } catch (error) {
-     res.status(500).send({ message: 'Error al procesar la contraseña.' });
-   }
- });
+  const { nombre, email, contrasena } = req.body;
+  const rol = 4;
+  const connection = await database.getconnection();
+  // Validar que los campos requeridos estén presentes
+  if (!nombre || !email || !contrasena) {
+    return res.status(400).send({ message: 'Nombre, email y contraseña son obligatorios.' });
+  }
 
- app.get('/usuario/:id', (req, res) => {
-   const usuarioId = req.params.id;
- 
-   // Consulta para seleccionar el usuario por su ID
-   const query = 'SELECT * FROM usuarios WHERE id = ?';
- 
-   connection.query(query, [usuarioId], (error, results) => {
-     if (error) {
-       return res.status(500).send({ message: 'Error al recuperar el perfil del usuario.' });
-     }
- 
-     if (results.length === 0) {
-       return res.status(404).send({ message: 'Usuario no encontrado.' });
-     }
- 
-     // Retornar la información del usuario
-     res.status(200).send(results[0]);
-   });
- });
+  // Hash de la contraseña
+  try {
+    //const hashedPassword = await bcrypt.hash(contrasena, 10);
+    console.log("GOASDASD");
+    // Fecha de registro
+    //const fechaRegistro = new Date().toISOString().slice(0, 10);
 
- //obtener perfil
- app.get('/perfil/:id', (req, res) => {
+    // Consulta para insertar el nuevo usuario
+    const query = `call sp_agregar_rol(?, ?, ?, ?)`;
+
+    connection.query(query, [nombre, contrasena, rol, email], (error, results) => {
+      console.log("mamitaa");
+      if (error) {
+        // Si el email ya existe, enviamos un error
+        if (error.code === 'ER_DUP_ENTRY') {
+          return res.status(409).send({ message: 'El email ya está registrado.' });
+        }
+        console.log("error");
+        return res.status(500).send({ message: 'Error al crear el usuario.' });
+      }
+      console.log("query ejecutada");
+      res.status(201).send({ message: 'Usuario creado exitosamente.', usuarioId: results.insertId });
+    });
+  } catch (error) {
+    res.status(500).send({ message: 'Error al procesar la contraseña.' });
+  }
+});
+
+app.get('/usuario/:id', (req, res) => {
+  const usuarioId = req.params.id;
+
+  // Consulta para seleccionar el usuario por su ID
+  const query = 'SELECT * FROM usuarios WHERE id = ?';
+
+  connection.query(query, [usuarioId], (error, results) => {
+    if (error) {
+      return res.status(500).send({ message: 'Error al recuperar el perfil del usuario.' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send({ message: 'Usuario no encontrado.' });
+    }
+
+    // Retornar la información del usuario
+    res.status(200).send(results[0]);
+  });
+});
+
+//obtener perfil
+app.get('/perfil/:id', (req, res) => {
   const usuarioId = req.params.id;
 
   // Consulta para obtener los detalles del perfil
@@ -209,9 +212,9 @@ app.post('/usuario', async (req, res) => {
 //
 
 
- //CARRITO
+//CARRITO
 
- app.post('/carrito', (req, res) => {
+app.post('/carrito', (req, res) => {
   const { usuario_id } = req.body;
 
   // Validar que se haya proporcionado el ID del usuario
@@ -362,7 +365,7 @@ app.get('/pedidos', (req, res) => {
   const cantidad = req.query.cantidad ? parseInt(req.query.cantidad) : 10; // Por defecto 10
   const estado = req.query.estado; // Opcional, para filtrar por estado
   const fecha = req.query.fecha; // Opcional, para filtrar por fecha
-  
+
   // Construcción de la consulta SQL con los filtros opcionales
   let query = `SELECT id, usuario_id, estado, fecha, precio FROM pedidos`;
   const queryParams = [];
