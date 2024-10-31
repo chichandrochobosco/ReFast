@@ -1,6 +1,7 @@
 const express = require("express");
 const morgan = require("morgan");
 const database = require("./database");
+const cors = require('cors');
 
 
 //config inicial
@@ -9,8 +10,12 @@ app.set("port", 4000);
 app.listen(app.get("port"));
 console.log("escuchando al puerto :) "+app.get("port"));
 
+
+
 //middlewares
 app.use(morgan("dev"));
+app.use(cors());
+app.use(express.json()); // Para parsear JSON
 
 
 // Middleware de autenticación y verificación de rol
