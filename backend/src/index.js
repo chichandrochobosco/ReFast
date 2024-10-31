@@ -131,10 +131,9 @@ app.get('/producto/:id', (req, res) => {
  });
 
 //PERFIL
-
 app.post('/usuario', async (req, res) => {
-   const { nombre, email, contrasena, direccion, telefono } = req.body;
- 
+   const { nombre, email, contrasena } = req.body;
+    const rol = 4;
    // Validar que los campos requeridos estén presentes
    if (!nombre || !email || !contrasena) {
      return res.status(400).send({ message: 'Nombre, email y contraseña son obligatorios.' });
@@ -145,13 +144,12 @@ app.post('/usuario', async (req, res) => {
      const hashedPassword = await bcrypt.hash(contrasena, 10);
  
      // Fecha de registro
-     const fechaRegistro = new Date().toISOString().slice(0, 10);
+     //const fechaRegistro = new Date().toISOString().slice(0, 10);
  
      // Consulta para insertar el nuevo usuario
-     const query = `INSERT INTO usuarios (nombre, email, contrasena, direccion, telefono, fecha_registro)
-                    VALUES (?, ?, ?, ?, ?, ?)`;
+     const query = `call sp_agregar_rol(?, ?, ?, ?)`;
  
-     connection.query(query, [nombre, email, hashedPassword, direccion, telefono, fechaRegistro], (error, results) => {
+     connection.query(query, [nombre, hashedPassword, rol, email], (error, results) => {
        if (error) {
          // Si el email ya existe, enviamos un error
          if (error.code === 'ER_DUP_ENTRY') {
