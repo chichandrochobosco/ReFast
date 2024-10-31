@@ -42,7 +42,27 @@ function verificarAdmin(req, res, next) {
 
 
 //rutas
+app.get('/ping', async (req, res) => {
+  const connection = await database.getconnection();
+  connection.query('SELECT 1', (error, results) => {
+      if (error) {
+          console.error('Error al hacer ping a la base de datos:', error);
+          return res.status(500).send({ message: 'Error al hacer ping a la base de datos.' });
+      }
+      res.send({ message: 'Pong!', results });
+  });
+});
 
+app.get('/usuarios', async (req, res) => {
+  const connection = await database.getconnection();
+  connection.query('SELECT * FROM usuario', (error, results) => {
+      if (error) {
+          console.error('Error al obtener usuarios:', error);
+          return res.status(500).send({ message: 'Error al obtener usuarios.' });
+      }
+      res.send(results); // Enviar los resultados como respuesta
+  });
+});
 
 //PRODUCTOS
 
@@ -132,39 +152,24 @@ app.post('/producto', verificarAdmin, (req, res) => {
 
 //PERFIL
 app.post('/usuario', async (req, res) => {
-  const { nombre, email, contrasena } = req.body;
-  const rol = 4;
-  const connection = await database.getconnection();
-  // Validar que los campos requeridos estén presentes
-  if (!nombre || !email || !contrasena) {
-    return res.status(400).send({ message: 'Nombre, email y contraseña son obligatorios.' });
+  const { nombre, contrasena, email } = req.body; // Desestructura el cuerpo de la solicitud
+  let connection;
+  const idrol = 4;
+
+  // Verificar que los campos requeridos estén presentes
+  if (!nombre || !contrasena || !idrol || !email) {
+      return res.status(400).send({ message: 'Todos los campos son requeridos.' });
   }
 
-  // Hash de la contraseña
   try {
-    //const hashedPassword = await bcrypt.hash(contrasena, 10);
-    console.log("GOASDASD");
-    // Fecha de registro
-    //const fechaRegistro = new Date().toISOString().slice(0, 10);
+      connection = await database.getconnection(); // Obtener conexión
+      const query = 'CALL sp_agregar_usuario(?, ?, ?, ?)';
+      const [result] = await connection.promise().query(query, [nombre, contrasena, idrol, email]); // Insertar el nuevo usuario
 
-    // Consulta para insertar el nuevo usuario
-    const query = `call sp_agregar_rol(?, ?, ?, ?)`;
-
-    connection.query(query, [nombre, contrasena, rol, email], (error, results) => {
-      console.log("mamitaa");
-      if (error) {
-        // Si el email ya existe, enviamos un error
-        if (error.code === 'ER_DUP_ENTRY') {
-          return res.status(409).send({ message: 'El email ya está registrado.' });
-        }
-        console.log("error");
-        return res.status(500).send({ message: 'Error al crear el usuario.' });
-      }
-      console.log("query ejecutada");
-      res.status(201).send({ message: 'Usuario creado exitosamente.', usuarioId: results.insertId });
-    });
+      res.status(201).send({ message: 'Usuario creado exitosamente.', usuarioId: result.insertId }); // Respuesta exitosa
   } catch (error) {
-    res.status(500).send({ message: 'Error al procesar la contraseña.' });
+      console.error('Error al crear usuario:', error);
+      return res.status(500).send({ message: 'Error al crear el usuario.' });
   }
 });
 
