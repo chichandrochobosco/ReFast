@@ -1,0 +1,119 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+    margin: 0;
+    padding: 0;
+}
+
+.contenedor {
+    width: 100%;
+    margin: 0 auto;
+}
+
+header {
+    background-color: #4e85ff;
+    padding: 10px 0;
+    margin-bottom: 20px;
+}
+
+header .menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+header .menu li {
+    margin: 0 15px;
+}
+
+header .menu li a {
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+header .menu li a:hover {
+    text-decoration: underline;
+}
+
+header h1 {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    color: white;
+}
+
+.lista-usuarios {
+    background-color: #1e60ee;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.item-usuario {
+    display: flex;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.item-izquierda {
+    flex: 1;
+    text-align: center;
+}
+
+.item-izquierda img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 5px;
+}
+
+.item-derecha {
+    flex: 4;
+    padding-left: 20px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.icono-editar {
+    flex: 0.5;
+    text-align: center;
+}
+
+.icono-editar button {
+    background-color: #1e90ff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.icono-eliminar {
+    flex: 0.5;
+    text-align: center;
+}
+
+.icono-eliminar button {
+    background-color: #ff6347;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.icono-eliminar button:hover {
+    background-color: #ff0000;
+}
+
