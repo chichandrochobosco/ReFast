@@ -55,7 +55,7 @@ app.get('/ping', async (req, res) => {
 
 app.get('/usuarios', async (req, res) => {
   const connection = await database.getconnection();
-  connection.query('SELECT * FROM usuario', (error, results) => {
+  connection.query('call sp_leer_usuarios()', (error, results) => {
       if (error) {
           console.error('Error al obtener usuarios:', error);
           return res.status(500).send({ message: 'Error al obtener usuarios.' });
@@ -68,7 +68,7 @@ app.get('/usuarios', async (req, res) => {
 
 app.get("/menu", async (req, res) => {
   const connection = await database.getconnection();
-  const result = await connection.query("SELECT * from producto");
+  const result = await connection.query("call sp_leer_productos()");
   console.log(result);
 })
 
@@ -96,7 +96,7 @@ app.get('/producto/:id', (req, res) => {
 app.delete('/producto/:id', verificarAdmin, (req, res) => {
   const productId = req.params.id;
 
-  connection.query('DELETE FROM productos WHERE id = ?', [productId], (error, results) => {
+  connection.query('call sp_eliminar_producto(?)', [productId], (error, results) => {
     if (error) {
       return res.status(500).send({ message: 'Error al eliminar el producto.' });
     }
@@ -114,9 +114,9 @@ app.put('/producto/:id', verificarAdmin, (req, res) => {
   const { nombre, descripcion, precio, stock } = req.body;
 
   // Consulta para actualizar el producto
-  const query = `UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, stock = ? WHERE id = ?`;
+  const query = `call sp_actualizar_producto(?, ?, ?, ?, ?)`;
 
-  connection.query(query, [nombre, descripcion, precio, stock, productId], (error, results) => {
+  connection.query(query, [productId, precio, nombre, stock, descripcion], (error, results) => {
     if (error) {
       return res.status(500).send({ message: 'Error al actualizar el producto.' });
     }
@@ -138,8 +138,7 @@ app.post('/producto', verificarAdmin, (req, res) => {
   }
 
   // Consulta para insertar el nuevo producto
-  const query = `INSERT INTO productos (nombre, fecha_ingreso, categoria, cantidad, precio, descripcion, imagen)
-                  VALUES (?, ?, ?, ?, ?, ?, ?)`;
+  const query = `call sp_crear_producto(?, ?, ?, ?, ?, ?, ?)`;
 
   connection.query(query, [nombre, fecha_ingreso, categoria, cantidad, precio, descripcion, imagen], (error, results) => {
     if (error) {
@@ -173,28 +172,32 @@ app.post('/usuario', async (req, res) => {
   }
 });
 
-app.get('/usuario/:id', (req, res) => {
+app.get('/usuario/:id', async (req, res) => {
+  let connection;
   const usuarioId = req.params.id;
-
+  try {
+    connection = await database.getconnection();
+    const query = 'call sp_leer_usuario_por_id(?)';
+    connection.query(query, [usuarioId], (error, results) => {
+  
+      if (results.length === 0) {
+        return res.status(404).send({ message: 'Usuario no encontrado.' });
+      }
+  
+      // Retornar la información del usuario
+      res.status(200).send(results[0]);
+    });
+  } catch(error){
+    return res.status(500).send({ message: 'Error al recuperar el perfil del usuario.' });
+  }  
   // Consulta para seleccionar el usuario por su ID
-  const query = 'SELECT * FROM usuarios WHERE id = ?';
+  
 
-  connection.query(query, [usuarioId], (error, results) => {
-    if (error) {
-      return res.status(500).send({ message: 'Error al recuperar el perfil del usuario.' });
-    }
-
-    if (results.length === 0) {
-      return res.status(404).send({ message: 'Usuario no encontrado.' });
-    }
-
-    // Retornar la información del usuario
-    res.status(200).send(results[0]);
-  });
+  
 });
 
 //obtener perfil
-app.get('/perfil/:id', (req, res) => {
+/*app.get('/perfil/:id', (req, res) => {
   const usuarioId = req.params.id;
 
   // Consulta para obtener los detalles del perfil
@@ -213,33 +216,31 @@ app.get('/perfil/:id', (req, res) => {
     res.status(200).send(results[0]);
   });
 });
-
+*/
 //
 
 
-//CARRITO
+//pedido
 
-app.post('/carrito', (req, res) => {
+app.post('/pedido', async(req, res) => {
+  let connection;
   const { usuario_id } = req.body;
-
-  // Validar que se haya proporcionado el ID del usuario
-  if (!usuario_id) {
-    return res.status(400).send({ message: 'El ID del usuario es obligatorio.' });
-  }
-
-  // Fecha de creación del carrito
-  const fechaCreacion = new Date().toISOString().slice(0, 10);
-
-  // Consulta para crear el carrito
-  const query = `INSERT INTO carritos (usuario_id, fecha_creacion) VALUES (?, ?)`;
-
-  connection.query(query, [usuario_id, fechaCreacion], (error, results) => {
-    if (error) {
-      return res.status(500).send({ message: 'Error al crear el carrito.' });
-    }
-
-    res.status(201).send({ message: 'Carrito creado exitosamente.', carritoId: results.insertId });
-  });
+  try {
+    connection = await database.getconnection();
+    const query = 'call sp_crear_pedido(?, ?, ?)';
+    connection.query(query, [usuarioId, precio, estadoId], (error, results) => {
+  
+      if (results.length === 0) {
+        return res.status(404).send({ message: 'Error al crear el carrito.' });
+      }
+  
+      // Retornar la información del usuario
+      res.status(200).send(results[0]);
+    });
+  } catch(error){
+    return res.status(500).send({ message: 'Error al recuperar el perfil del usuario.' });
+  }  
+  // Consulta para seleccionar el usuario por su ID
 });
 
 //obtener carrito
@@ -267,8 +268,8 @@ app.get('/carrito/:id', (req, res) => {
   });
 });
 
-// carrito por ID
-app.get('/carrito/:id', (req, res) => {
+// pedido por ID
+app.get('/pedido/:id', (req, res) => {
   const carritoId = req.params.id;
 
   // Consulta para obtener los detalles del carrito específico
@@ -294,11 +295,11 @@ app.get('/carrito/:id', (req, res) => {
 });
 
 //agregar producto
-app.post('/carrito/:id/producto', (req, res) => {
+app.post('/pedido/:id/producto', (req, res) => {
   const carritoId = req.params.id;
   const { productoId, cantidad } = req.body;
 
-  // Primero, verifica si el producto ya está en el carrito
+  // Primero, verifica si el producto ya está en el pedido
   const checkQuery = `
     SELECT cantidad FROM carrito_productos 
     WHERE carrito_id = ? AND producto_id = ?`;
@@ -338,15 +339,13 @@ app.post('/carrito/:id/producto', (req, res) => {
   });
 });
 
-//eliminar producto
-app.delete('/carrito/:id/producto/:productoId', (req, res) => {
+//eliminar producto terminar**************************************************************************
+app.delete('/pedido/:id/producto/:productoId', (req, res) => {
   const carritoId = req.params.id;
   const productoId = req.params.productoId;
 
   // Consulta para eliminar el producto del carrito
-  const deleteQuery = `
-    DELETE FROM carrito_productos 
-    WHERE carrito_id = ? AND producto_id = ?`;
+  const deleteQuery = `call sp_eliminar_pedido_producto(?)`;
 
   connection.query(deleteQuery, [carritoId, productoId], (error, results) => {
     if (error) {
@@ -372,7 +371,7 @@ app.get('/pedidos', (req, res) => {
   const fecha = req.query.fecha; // Opcional, para filtrar por fecha
 
   // Construcción de la consulta SQL con los filtros opcionales
-  let query = `SELECT id, usuario_id, estado, fecha, precio FROM pedidos`;
+  let query = `call sp_leer_pedidos()`;
   const queryParams = [];
 
   if (estado || fecha) {
@@ -400,17 +399,13 @@ app.get('/pedidos', (req, res) => {
   });
 });
 
-//Método obtener productos de un pedido
+//Método obtener productos de un pedido ***********************************************************************
 
 app.get('/pedido/:id/productos', (req, res) => {
   const pedidoId = req.params.id;
 
   // Consulta para obtener los productos de un pedido
-  const query = `
-    SELECT p.id, p.nombre, p.descripcion, p.precio, p.imagen, pp.cantidad 
-    FROM pedido_productos pp
-    JOIN productos p ON pp.producto_id = p.id
-    WHERE pp.pedido_id = ?`;
+  const query = `call sp_leer_pedidos_productos(?)`;
 
   connection.query(query, [pedidoId], (error, results) => {
     if (error) {
@@ -426,7 +421,7 @@ app.get('/pedido/:id/productos', (req, res) => {
   });
 });
 
-//obtener pedido por id
+//obtener pedido por id **************************************************************************************************************
 
 app.get('/pedido/:id', (req, res) => {
   const pedidoId = req.params.id;
@@ -464,10 +459,7 @@ app.put('/pedido/:id/estado', (req, res) => {
   }
 
   // Consulta para actualizar el estado del pedido
-  const query = `
-    UPDATE pedidos
-    SET estado = ?
-    WHERE id = ?`;
+  const query = `call sp_actualizar_estado_pedido(?, ?)`;
 
   connection.query(query, [estado, pedidoId], (error, results) => {
     if (error) {
@@ -488,7 +480,7 @@ app.delete('/pedido/:id', (req, res) => {
   const pedidoId = req.params.id;
 
   // Consulta para eliminar el pedido (productos relacionados se eliminan automáticamente gracias a ON DELETE CASCADE)
-  const query = `DELETE FROM pedidos WHERE id = ?`;
+  const query = `call sp_eliminar_pedido(?)`;
 
   connection.query(query, [pedidoId], (error, results) => {
     if (error) {
@@ -504,122 +496,4 @@ app.delete('/pedido/:id', (req, res) => {
   });
 });
 
-//MENU DEL DIA
-
-//agregar plato al menu del dia
-app.post('/menu-dia', (req, res) => {
-  const { nombre, descripcion, precio, fecha } = req.body;
-
-  // Consulta para insertar un nuevo plato en la tabla de platos
-  const queryPlato = `INSERT INTO platos (nombre, descripcion, precio) VALUES (?, ?, ?)`;
-
-  connection.query(queryPlato, [nombre, descripcion, precio], (error, results) => {
-    if (error) {
-      return res.status(500).send({ message: 'Error al agregar el plato.' });
-    }
-
-    const platoId = results.insertId;
-
-    // Consulta para agregar el plato al menú del día para la fecha especificada
-    const queryMenuDia = `INSERT INTO menu_dia (fecha, plato_id) VALUES (?, ?)`;
-
-    connection.query(queryMenuDia, [fecha, platoId], (error, results) => {
-      if (error) {
-        return res.status(500).send({ message: 'Error al agregar el plato al menú del día.' });
-      }
-
-      // Retornar éxito de la operación
-      res.status(200).send({ success: true, message: 'Plato agregado al menú del día correctamente.' });
-    });
-  });
-});
-
-// Ruta para obtener los platos del menú del día basados en ventas o reseñas
-app.get('/menu-dia', (req, res) => {
-  const { fecha, ordenarPor } = req.query; // "ventas" o "reseñas"
-
-  let query = `
-    SELECT p.id, p.nombre, p.descripcion, p.precio, 
-    SUM(v.cantidad) AS total_ventas, AVG(r.calificacion) AS promedio_reseñas
-    FROM platos p
-    JOIN menu_dia m ON p.id = m.plato_id
-    LEFT JOIN ventas v ON p.id = v.plato_id
-    LEFT JOIN reseñas r ON p.id = r.plato_id
-    WHERE m.fecha = ?
-    GROUP BY p.id
-  `;
-
-  // Ordenar por cantidad de ventas o calificaciones de reseñas
-  if (ordenarPor === 'ventas') {
-    query += ` ORDER BY total_ventas DESC`;
-  } else if (ordenarPor === 'reseñas') {
-    query += ` ORDER BY promedio_reseñas DESC`;
-  }
-
-  connection.query(query, [fecha], (error, results) => {
-    if (error) {
-      return res.status(500).send({ message: 'Error al obtener los platos del menú del día.' });
-    }
-
-    // Devolver los platos del menú del día
-    res.status(200).send(results);
-  });
-});
-
-// Ruta para eliminar un plato específico del menú del día
-app.delete('/menu-dia/:fecha/:plato_id', (req, res) => {
-  const { fecha, plato_id } = req.params;
-
-  // Consulta para eliminar el plato del menú del día para la fecha específica
-  const query = `DELETE FROM menu_dia WHERE fecha = ? AND plato_id = ?`;
-
-  connection.query(query, [fecha, plato_id], (error, results) => {
-    if (error) {
-      return res.status(500).send({ message: 'Error al eliminar el plato del menú del día.' });
-    }
-
-    if (results.affectedRows === 0) {
-      return res.status(404).send({ message: 'No se encontró el plato para la fecha especificada.' });
-    }
-
-    // Retornar éxito si se eliminó correctamente
-    res.status(200).send({ success: true, message: 'Plato eliminado del menú del día correctamente.' });
-  });
-});
-
-// Ruta para obtener el menú semanal
-app.get('/menu-semanal', (req, res) => {
-  const { fecha_inicio, fecha_fin } = req.query; // Fechas de inicio y fin de la semana
-
-  // Consulta SQL para obtener los platos del menú para la semana
-  const query = `
-    SELECT m.fecha, p.nombre, p.descripcion, p.precio
-    FROM menu_dia m
-    JOIN platos p ON m.plato_id = p.id
-    WHERE m.fecha BETWEEN ? AND ?
-    ORDER BY m.fecha
-  `;
-
-  connection.query(query, [fecha_inicio, fecha_fin], (error, results) => {
-    if (error) {
-      return res.status(500).send({ message: 'Error al obtener el menú semanal.' });
-    }
-
-    // Agrupar los platos por fecha para generar una vista del menú semanal
-    const menuSemanal = results.reduce((acc, plato) => {
-      const fecha = plato.fecha.toISOString().split('T')[0]; // Formatear la fecha
-      if (!acc[fecha]) {
-        acc[fecha] = [];
-      }
-      acc[fecha].push({
-        nombre: plato.nombre,
-        descripcion: plato.descripcion,
-        precio: plato.precio
-      });
-      return acc;
-    }, {});
-
-    // Devolver el menú semanal agrupado por fecha
-    res.status(200).send(menuSemanal);
-  });
-});
+//SE ELIMINO TODO MENU DEL DIA POR SER CATEGORIA,NO TABLA, INNECESARIA TABLA
