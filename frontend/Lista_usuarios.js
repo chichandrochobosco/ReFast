@@ -10,16 +10,23 @@ function mostrarUsuarios(usuarios) {
     listaUsuariosDiv.innerHTML = ''; // Limpiar el contenedor
 
     usuarios.forEach(usuario => {
+        console.log(usuario); // Verificar que el objeto contenga las propiedades correctas
+
         const usuarioDiv = document.createElement('div');
         usuarioDiv.classList.add('item-usuario');
-        
+
+        // Verifica que 'nombre' y 'email' existen
+        const nombre = usuario.nombre || 'Desconocido';
+        const email = usuario.email || 'No proporcionado';
+
         usuarioDiv.innerHTML = `
             <div class="item-izquierda">
-                <img src="https://www.gravatar.com/avatar/${usuario.emailHash}" alt="${usuario.nombre}">
+                <img src="https://www.gravatar.com/avatar/${usuario.emailHash}" alt="${nombre}">
             </div>
             <div class="item-derecha">
-                <div><strong>Nombre:</strong> ${usuario.nombre}</div>
-                <div><strong>Email:</strong> ${usuario.email}</div>
+                <div><strong>Nombre:</strong> ${nombre}</div>
+                <div><strong>Email:</strong> ${email}</div>
+            </div>
         `;
 
         listaUsuariosDiv.appendChild(usuarioDiv);
