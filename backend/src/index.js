@@ -53,7 +53,7 @@ app.get('/ping', async (req, res) => {
   });
 });
 
-app.get('/usuarios', async (req, res) => {
+/*app.get('/usuario', async (req, res) => {
   const connection = await database.getconnection();
   connection.query('call sp_leer_usuarios()', (error, results) => {
       if (error) {
@@ -62,7 +62,7 @@ app.get('/usuarios', async (req, res) => {
       }
       res.send(results); // Enviar los resultados como respuesta
   });
-});
+});*/
 
 //PRODUCTOS
 
@@ -79,6 +79,8 @@ app.get("/menu", async (req, res) => {
    console.log(result); 
 } )*/
 
+
+//ya esta el sp_leer_producto_por_id();
 app.get('/producto/:id', (req, res) => {
   const productId = req.params.id;
 
@@ -92,6 +94,7 @@ app.get('/producto/:id', (req, res) => {
     res.send(results[0]);
   });
 });
+
 
 app.delete('/producto/:id', verificarAdmin, (req, res) => {
   const productId = req.params.id;
@@ -238,7 +241,7 @@ app.post('/pedido', async(req, res) => {
       res.status(200).send(results[0]);
     });
   } catch(error){
-    return res.status(500).send({ message: 'Error al recuperar el perfil del usuario.' });
+    return res.status(500).send({ message: 'Error al crear el carrito.' });
   }  
   // Consulta para seleccionar el usuario por su ID
 });
