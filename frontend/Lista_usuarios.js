@@ -1,5 +1,5 @@
 window.onload = function () {
-    fetch('http://localhost:4000/usuarios') // Cambia esta URL si es necesario
+    fetch('http://localhost:4000/usuario') // Cambia esta URL si es necesario
         .then(response => response.json())
         .then(data => mostrarUsuarios(data))
         .catch(error => console.error('Error al cargar los usuarios:', error));
@@ -51,8 +51,7 @@ function eliminarUsuario(usuarioId) {
         .then(data => {
             if (data.message === 'Usuario eliminado correctamente.') {
                 alert('Usuario eliminado correctamente.');
-                // Recargar la lista de usuarios después de eliminar uno
-                cargarUsuarios(); 
+                location.reload();
             } else {
                 alert('Error al eliminar el usuario.');
             }

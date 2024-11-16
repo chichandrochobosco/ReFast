@@ -53,19 +53,16 @@ app.get('/ping', async (req, res) => {
   });
 });
 
-app.get('/usuarios', async (req, res) => {
+/*app.get('/usuario', async (req, res) => {
   const connection = await database.getconnection();
-  connection.query('CALL sp_leer_usuarios()', (error, results) => {
+  connection.query('call sp_leer_usuarios()', (error, results) => {
       if (error) {
           console.error('Error al obtener usuarios:', error);
           return res.status(500).send({ message: 'Error al obtener usuarios.' });
       }
-      
-      // Asegúrate de enviar el resultado correcto.
-      // results[0] generalmente contiene las filas devueltas por el procedimiento almacenado.
-      res.send(results[0]); 
+      res.send(results); // Enviar los resultados como respuesta
   });
-});
+});*/
 
 //PRODUCTOS
 
@@ -82,6 +79,8 @@ app.get("/menu", async (req, res) => {
    console.log(result); 
 } )*/
 
+
+//ya esta el sp_leer_producto_por_id();
 app.get('/producto/:id', (req, res) => {
   const productId = req.params.id;
 
@@ -95,6 +94,7 @@ app.get('/producto/:id', (req, res) => {
     res.send(results[0]);
   });
 });
+
 
 app.delete('/producto/:id', verificarAdmin, (req, res) => {
   const productId = req.params.id;
@@ -175,6 +175,20 @@ app.post('/usuario', async (req, res) => {
   }
 });
 
+app.get('/usuario', async (req, res) => {
+  const connection = await database.getconnection();
+  connection.query('CALL sp_leer_usuarios()', (error, results) => {
+      if (error) {
+          console.error('Error al obtener usuarios:', error);
+          return res.status(500).send({ message: 'Error al obtener usuarios.' });
+      }
+      
+      // Asegúrate de enviar el resultado correcto.
+      // results[0] generalmente contiene las filas devueltas por el procedimiento almacenado.
+      res.send(results[0]); 
+  });
+});
+
 app.get('/usuario/:id', async (req, res) => {
   let connection;
   const usuarioId = req.params.id;
@@ -194,7 +208,7 @@ app.get('/usuario/:id', async (req, res) => {
     return res.status(500).send({ message: 'Error al recuperar el perfil del usuario.' });
   }  
   // Consulta para seleccionar el usuario por su ID
-  
+   
 });
 
 app.delete('/usuario/:id', async (req, res) => {
@@ -225,8 +239,6 @@ app.delete('/usuario/:id', async (req, res) => {
   }
 });
 
-
-
 //obtener perfil
 /*app.get('/perfil/:id', (req, res) => {
   const usuarioId = req.params.id;
@@ -255,7 +267,7 @@ app.delete('/usuario/:id', async (req, res) => {
 
 app.post('/pedido', async(req, res) => {
   let connection;
-  const { usuario_id } = req.body;
+  const { usuarioId, precio, estadoId } = req.body; //agregué las variables precio y estadoId porque sino no iban a estar para la query
   try {
     connection = await database.getconnection();
     const query = 'call sp_crear_pedido(?, ?, ?)';
@@ -269,12 +281,13 @@ app.post('/pedido', async(req, res) => {
       res.status(200).send(results[0]);
     });
   } catch(error){
-    return res.status(500).send({ message: 'Error al recuperar el perfil del usuario.' });
+    return res.status(500).send({ message: 'Error al crear el carrito.' });
   }  
   // Consulta para seleccionar el usuario por su ID
 });
 
 //obtener carrito
+/* CARRITO AL FINAL NO EXISTE XD, asi que quedo ahi.
 app.get('/carrito/:id', (req, res) => {
   const carritoId = req.params.id;
 
@@ -298,12 +311,16 @@ app.get('/carrito/:id', (req, res) => {
     res.status(200).send(results);
   });
 });
+*/
 
 // pedido por ID
 app.get('/pedido/:id', (req, res) => {
-  const carritoId = req.params.id;
+  const pedidoId = req.params.id;
 
   // Consulta para obtener los detalles del carrito específico
+  // ya esta el metodo sp_leer_pedido_por_id(), devuelve la info del pedido
+  // NO devuelve los productos del pedido, para eso esta el endpoint de GET /pedido/:id/productos
+  // por eso me parecio medio rara la query de abajo pero vamo con los datos del pedido sin productos
   const query = `
     SELECT c.id AS carrito_id, c.fecha_creacion, p.id AS producto_id, p.nombre, p.categoria, p.precio, cp.cantidad, p.descripcion, p.imagen 
     FROM carritos c
@@ -311,7 +328,7 @@ app.get('/pedido/:id', (req, res) => {
     JOIN productos p ON cp.producto_id = p.id
     WHERE c.id = ?`;
 
-  connection.query(query, [carritoId], (error, results) => {
+  connection.query(query, [pedidoId], (error, results) => {
     if (error) {
       return res.status(500).send({ message: 'Error al recuperar el carrito de compras.' });
     }
@@ -327,17 +344,17 @@ app.get('/pedido/:id', (req, res) => {
 
 //agregar producto
 app.post('/pedido/:id/producto', (req, res) => {
-  const carritoId = req.params.id;
+  const pedidoId = req.params.id;
   const { productoId, cantidad } = req.body;
 
   // Primero, verifica si el producto ya está en el pedido
   const checkQuery = `
-    SELECT cantidad FROM carrito_productos 
-    WHERE carrito_id = ? AND producto_id = ?`;
+    SELECT cantidad FROM pedido_producto 
+    WHERE id_pedido = ? AND id_producto = ?`;
 
-  connection.query(checkQuery, [carritoId, productoId], (error, results) => {
+  connection.query(checkQuery, [pedidoId, productoId], (error, results) => {
     if (error) {
-      return res.status(500).send({ message: 'Error al verificar el producto en el carrito.' });
+      return res.status(500).send({ message: 'Error al verificar el producto en el pedido.' });
     }
 
     if (results.length > 0) {
@@ -348,11 +365,11 @@ app.post('/pedido/:id/producto', (req, res) => {
         SET cantidad = ? 
         WHERE carrito_id = ? AND producto_id = ?`;
 
-      connection.query(updateQuery, [newCantidad, carritoId, productoId], (error) => {
+      connection.query(updateQuery, [newCantidad, pedidoId, productoId], (error) => {
         if (error) {
           return res.status(500).send({ message: 'Error al actualizar la cantidad del producto.' });
         }
-        return res.status(200).send({ message: 'Producto actualizado en el carrito.' });
+        return res.status(200).send({ message: 'Producto actualizado en el peidod.' });
       });
     } else {
       // Si el producto no está en el carrito, agrégalo
@@ -370,15 +387,16 @@ app.post('/pedido/:id/producto', (req, res) => {
   });
 });
 
-//eliminar producto terminar**************************************************************************
+/*/eliminar producto terminar*************************************YA EStA
+*USaR sp_eliminar_producto_de_pedido_producto(pedidoId, productoId)*************************************/
 app.delete('/pedido/:id/producto/:productoId', (req, res) => {
-  const carritoId = req.params.id;
+  const pedidoId = req.params.id;
   const productoId = req.params.productoId;
 
   // Consulta para eliminar el producto del carrito
-  const deleteQuery = `call sp_eliminar_pedido_producto(?)`;
+  const deleteQuery = `call sp_eliminar_producto_de_pedido_producto(?, ?)`;
 
-  connection.query(deleteQuery, [carritoId, productoId], (error, results) => {
+  connection.query(deleteQuery, [pedidoId, productoId], (error, results) => {
     if (error) {
       return res.status(500).send({ message: 'Error al eliminar el producto del carrito.' });
     }
@@ -430,13 +448,13 @@ app.get('/pedidos', (req, res) => {
   });
 });
 
-//Método obtener productos de un pedido ***********************************************************************
+//Método obtener productos de un pedido ***********LISTOlA, sp_leer_pedido_productos(idpedido)************************************************************
 
 app.get('/pedido/:id/productos', (req, res) => {
   const pedidoId = req.params.id;
 
   // Consulta para obtener los productos de un pedido
-  const query = `call sp_leer_pedidos_productos(?)`;
+  const query = `call sp_leer_pedido_productos(?)`;
 
   connection.query(query, [pedidoId], (error, results) => {
     if (error) {
@@ -452,7 +470,7 @@ app.get('/pedido/:id/productos', (req, res) => {
   });
 });
 
-//obtener pedido por id **************************************************************************************************************
+//obtener pedido por id ********Ya esta... usar sp_leer_pedido_por_id(idpedido)******************************************************************************************************
 
 app.get('/pedido/:id', (req, res) => {
   const pedidoId = req.params.id;
@@ -490,9 +508,9 @@ app.put('/pedido/:id/estado', (req, res) => {
   }
 
   // Consulta para actualizar el estado del pedido
-  const query = `call sp_actualizar_estado_pedido(?, ?)`;
+  const query = `call sp_actualizar_pedido_estado(?, ?)`;
 
-  connection.query(query, [estado, pedidoId], (error, results) => {
+  connection.query(query, [ pedidoId, estado ], (error, results) => {
     if (error) {
       return res.status(500).send({ message: 'Error al actualizar el estado del pedido.' });
     }
