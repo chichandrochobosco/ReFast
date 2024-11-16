@@ -195,9 +195,37 @@ app.get('/usuario/:id', async (req, res) => {
   }  
   // Consulta para seleccionar el usuario por su ID
   
-
-  
 });
+
+app.delete('/usuario/:id', async (req, res) => {
+  const { id } = req.params;  // Obtiene el 'id' desde los parámetros de la URL
+  let connection;
+
+  try {
+    // Verificar si el ID es válido (puedes agregar más validaciones según sea necesario)
+    if (!id) {
+      return res.status(400).send({ message: 'El ID del usuario es requerido.' });
+    }
+
+    connection = await database.getconnection();  // Obtener conexión con la base de datos
+
+    // Llamar a un procedimiento almacenado para eliminar el usuario
+    const query = 'CALL sp_eliminar_usuario(?)';
+    const [result] = await connection.promise().query(query, [id]);  // Ejecutar el query
+
+    // Verificar si el usuario fue eliminado
+    if (result.affectedRows > 0) {
+      return res.status(200).send({ message: 'Usuario eliminado correctamente.' });
+    } else {
+      return res.status(404).send({ message: 'Usuario no encontrado.' });
+    }
+  } catch (error) {
+    console.error('Error al eliminar el usuario:', error);
+    return res.status(500).send({ message: 'Error al eliminar el usuario.' });
+  }
+});
+
+
 
 //obtener perfil
 /*app.get('/perfil/:id', (req, res) => {
