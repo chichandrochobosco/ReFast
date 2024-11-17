@@ -84,7 +84,7 @@ app.get("/menu", async (req, res) => {
 app.get('/producto/:id', (req, res) => {
   const productId = req.params.id;
 
-  connection.query('SELECT * FROM productos WHERE id = ?', [productId], (error, results) => {
+  connection.query('sp_leer_producto_por_id(?)', [productId], (error, results) => {
     if (error) {
       return res.status(500).send({ message: 'Error al obtener el producto' });
     }
