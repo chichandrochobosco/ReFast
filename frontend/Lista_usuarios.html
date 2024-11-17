@@ -18,11 +18,18 @@
             </ul>
         </nav>
     </header>
+
+    <div class="barra-busqueda">
+        <input type="text" id="usuario-id" placeholder="Ingrese el ID del usuario...">
+        <button class="btn-buscar" onclick="buscarUsuario()">Buscar Usuario</button>
+        <button class="btn-mostrar-todos" onclick="mostrarTodosUsuarios()">Mostrar Todos</button>
+    </div>
     <div class="contenedor">
         <div class="lista-usuarios" id="lista-usuarios">
             <!-- Aquí se llenarán los usuarios -->
         </div>
     </div>
+
     <script src="Lista_usuarios.js"></script>
 </body>
 </html>
