@@ -436,10 +436,7 @@ app.get('/pedido/:id', (req, res) => {
   const pedidoId = req.params.id;
 
   // Consulta para obtener el pedido por su ID
-  const query = `
-    SELECT id, usuario_id, estado, fecha, precio
-    FROM pedidos
-    WHERE id = ?`;
+  const query = `sp_leer_pedido_por_id(?)`;
 
   connection.query(query, [pedidoId], (error, results) => {
     if (error) {
