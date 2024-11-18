@@ -85,7 +85,7 @@ app.get('/producto/:id', async(req, res) => {
   const connection = await database.getconnection();
   const productId = req.params.id;
 
-  connection.query('sp_leer_producto_por_id(?)', [productId], (error, results) => {
+  connection.query('call sp_leer_producto_por_id(?)', [productId], (error, results) => {
     if (error) {
       return res.status(500).send({ message: 'Error al obtener el producto' });
     }
@@ -155,6 +155,67 @@ app.post('/producto', verificarAdmin, async(req, res) => {
   });
 });
 
+app.get('/producto/:id/categoria', async(req, res) => {
+  let connection;
+  const idProducto = req.params.id;
+
+  try{
+    connection = await database.getconnection();
+    const query = 'CALL sp_leer_producto_categorias(?)'
+    connection.query(query, [idProducto], (result, error) =>{
+      if (error) {
+        return res.status(500).send({ message: 'Error al buscar las categorias del producto.' });
+      }
+  
+      if (result.length === 0) {
+        return res.status(404).send({ message: 'Producto no encontrado.' });
+      }
+
+      res.send(result);
+    });
+  } catch (error) {
+    return res.status(500).send({ message: 'Error al realizar consulta' });
+  }
+});
+
+app.get('/categoria', async(req, res) => {
+  let connection;
+  try{
+    connection = await database.getconnection();
+    const query = 'CALL sp_leer_categorias()'
+    connection.query(query, (result, error) => {
+      if (error) {
+        return res.status(500).send({ message: 'Error al buscar las categorias.' });
+      }
+
+      res.send(result);
+    });
+  } catch(err){
+    return res.status(500).send({ message: 'Error al realizar consulta' });
+  }
+});
+
+app.get('/categoria/:id/producto', async(req, res) =>{
+  let connection;
+  const idCategoria = req.params.id;
+
+  try{
+    connection = await database.getconnection();
+    const query = 'CALL sp_leer_productos_por_categoria(?)'
+    connection.query(query, [idCategoria], (result, error) =>{
+      if (error) {
+        return res.status(500).send({ message: 'Error al buscar los productos con la categoria.' });
+      }
+      if (result.length === 0) {
+        return res.status(404).send({ message: 'Categoria no encontrada.' });
+      }
+
+      res.send(result);
+    });
+  } catch (error) {
+    return res.status(500).send({ message: 'Error al realizar consulta' });
+  }
+});
 //PERFIL
 app.post('/usuario', async (req, res) => {
   const { nombre, contrasena, email } = req.body; // Desestructura el cuerpo de la solicitud
@@ -325,7 +386,7 @@ app.get('/pedido/:id', async(req, res) => {
   // NO devuelve los productos del pedido, para eso esta el endpoint de GET /pedido/:id/productos
   // por eso me parecio medio rara la query de abajo pero vamo con los datos del pedido sin productos
   connection = await database.getconnection();
-  const query = `sp_leer_pedido_por_id(?)`;
+  const query = `call sp_leer_pedido_por_id(?)`;
 
   connection.query(query, [pedidoId], (error, results) => {
     if (error) {
@@ -481,7 +542,7 @@ app.get('/pedido/:id', async(req, res) => {
   const pedidoId = req.params.id;
   connection = await database.getconnection();
   // Consulta para obtener el pedido por su ID
-  const query = `sp_leer_pedido_por_id(?)`;
+  const query = `call sp_leer_pedido_por_id(?)`;
 
   connection.query(query, [pedidoId], (error, results) => {
     if (error) {
