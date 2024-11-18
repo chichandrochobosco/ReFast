@@ -100,7 +100,6 @@ app.get('/producto/:id', async(req, res) => {
 app.delete('/producto/:id', verificarAdmin, async(req, res) => {
   const connection = await database.getconnection();
   const productId = req.params.id;
-
   connection.query('call sp_eliminar_producto(?)', [productId], (error, results) => {
     if (error) {
       return res.status(500).send({ message: 'Error al eliminar el producto.' });
@@ -179,14 +178,27 @@ app.post('/usuario', async (req, res) => {
   }
 });
 
+app.get('/usuario', async (req, res) => {
+  const connection = await database.getconnection();
+  connection.query('CALL sp_leer_usuarios()', (error, results) => {
+      if (error) {
+          console.error('Error al obtener usuarios:', error);
+          return res.status(500).send({ message: 'Error al obtener usuarios.' });
+      }
+      
+      // Asegúrate de enviar el resultado correcto.
+      // results[0] generalmente contiene las filas devueltas por el procedimiento almacenado.
+      res.send(results[0]); 
+  });
+});
+
 app.get('/usuario/:id', async (req, res) => {
   let connection;
   const usuarioId = req.params.id;
   try {
     connection = await database.getconnection();
     const query = 'call sp_leer_usuario_por_id(?)';
-    connection.query(query, [usuarioId], (error, results) => {
-  
+    connection.query(query, [usuarioId], (error, results) => {  
       if (results.length === 0) {
         return res.status(404).send({ message: 'Usuario no encontrado.' });
       }
@@ -198,9 +210,34 @@ app.get('/usuario/:id', async (req, res) => {
     return res.status(500).send({ message: 'Error al recuperar el perfil del usuario.' });
   }  
   // Consulta para seleccionar el usuario por su ID
-  
+});
 
-  
+app.delete('/usuario/:id', async (req, res) => {
+  const { id } = req.params;  // Obtiene el 'id' desde los parámetros de la URL
+  let connection;
+
+  try {
+    // Verificar si el ID es válido (puedes agregar más validaciones según sea necesario)
+    if (!id) {
+      return res.status(400).send({ message: 'El ID del usuario es requerido.' });
+    }
+
+    connection = await database.getconnection();  // Obtener conexión con la base de datos
+
+    // Llamar a un procedimiento almacenado para eliminar el usuario
+    const query = 'CALL sp_eliminar_usuario(?)';
+    const [result] = await connection.promise().query(query, [id]);  // Ejecutar el query
+
+    // Verificar si el usuario fue eliminado
+    if (result.affectedRows > 0) {
+      return res.status(200).send({ message: 'Usuario eliminado correctamente.' });
+    } else {
+      return res.status(404).send({ message: 'Usuario no encontrado.' });
+    }
+  } catch (error) {
+    console.error('Error al eliminar el usuario:', error);
+    return res.status(500).send({ message: 'Error al eliminar el usuario.' });
+  }
 });
 
 //obtener perfil
