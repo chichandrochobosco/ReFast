@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Usuarios</title>
+    <link rel="stylesheet" href="usuarios.css">
+</head>
+<body>
+    <header>
+        <h1>Lista de Usuarios</h1>
+        <nav>
+            <ul class="menu">
+                <li><a href="Ingresar_productos.html">Productos</a></li>
+                <li><a href="Administrar_pedidos.html">Pedidos</a></li>
+                <li><a href="pedidos_cliente.html">Cliente</a></li>
+                <li><a href="Lista_usuarios.html">Usuarios</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="barra-busqueda">
+        <input type="text" id="usuario-id" placeholder="Ingrese el ID del usuario...">
+        <button class="btn-buscar" onclick="buscarUsuario()">Buscar Usuario</button>
+        <button class="btn-mostrar-todos" onclick="mostrarTodosUsuarios()">Mostrar Todos</button>
+    </div>
+    <div class="contenedor">
+        <div class="lista-usuarios" id="lista-usuarios">
+            <!-- Aquí se llenarán los usuarios -->
+        </div>
+    </div>
+
+    <script src="Lista_usuarios.js"></script>
+</body>
+</html>

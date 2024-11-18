@@ -81,10 +81,11 @@ app.get("/menu", async (req, res) => {
 
 
 //ya esta el sp_leer_producto_por_id();
-app.get('/producto/:id', (req, res) => {
+app.get('/producto/:id', async(req, res) => {
+  const connection = await database.getconnection();
   const productId = req.params.id;
 
-  connection.query('SELECT * FROM productos WHERE id = ?', [productId], (error, results) => {
+  connection.query('sp_leer_producto_por_id(?)', [productId], (error, results) => {
     if (error) {
       return res.status(500).send({ message: 'Error al obtener el producto' });
     }
@@ -96,9 +97,9 @@ app.get('/producto/:id', (req, res) => {
 });
 
 
-app.delete('/producto/:id', verificarAdmin, (req, res) => {
+app.delete('/producto/:id', verificarAdmin, async(req, res) => {
+  const connection = await database.getconnection();
   const productId = req.params.id;
-
   connection.query('call sp_eliminar_producto(?)', [productId], (error, results) => {
     if (error) {
       return res.status(500).send({ message: 'Error al eliminar el producto.' });
@@ -112,7 +113,8 @@ app.delete('/producto/:id', verificarAdmin, (req, res) => {
   });
 });
 
-app.put('/producto/:id', verificarAdmin, (req, res) => {
+app.put('/producto/:id', verificarAdmin, async(req, res) => {
+  const connection = await database.getconnection();
   const productId = req.params.id;
   const { nombre, descripcion, precio, stock } = req.body;
 
@@ -132,7 +134,8 @@ app.put('/producto/:id', verificarAdmin, (req, res) => {
   });
 });
 
-app.post('/producto', verificarAdmin, (req, res) => {
+app.post('/producto', verificarAdmin, async(req, res) => {
+  const connection = await database.getconnection();
   const { nombre, fecha_ingreso, categoria, cantidad, precio, descripcion, imagen } = req.body;
 
   // Validar que todos los campos requeridos estén presentes
@@ -175,14 +178,27 @@ app.post('/usuario', async (req, res) => {
   }
 });
 
+app.get('/usuario', async (req, res) => {
+  const connection = await database.getconnection();
+  connection.query('CALL sp_leer_usuarios()', (error, results) => {
+      if (error) {
+          console.error('Error al obtener usuarios:', error);
+          return res.status(500).send({ message: 'Error al obtener usuarios.' });
+      }
+      
+      // Asegúrate de enviar el resultado correcto.
+      // results[0] generalmente contiene las filas devueltas por el procedimiento almacenado.
+      res.send(results[0]); 
+  });
+});
+
 app.get('/usuario/:id', async (req, res) => {
   let connection;
   const usuarioId = req.params.id;
   try {
     connection = await database.getconnection();
     const query = 'call sp_leer_usuario_por_id(?)';
-    connection.query(query, [usuarioId], (error, results) => {
-  
+    connection.query(query, [usuarioId], (error, results) => {  
       if (results.length === 0) {
         return res.status(404).send({ message: 'Usuario no encontrado.' });
       }
@@ -194,9 +210,34 @@ app.get('/usuario/:id', async (req, res) => {
     return res.status(500).send({ message: 'Error al recuperar el perfil del usuario.' });
   }  
   // Consulta para seleccionar el usuario por su ID
-  
+});
 
-  
+app.delete('/usuario/:id', async (req, res) => {
+  const { id } = req.params;  // Obtiene el 'id' desde los parámetros de la URL
+  let connection;
+
+  try {
+    // Verificar si el ID es válido (puedes agregar más validaciones según sea necesario)
+    if (!id) {
+      return res.status(400).send({ message: 'El ID del usuario es requerido.' });
+    }
+
+    connection = await database.getconnection();  // Obtener conexión con la base de datos
+
+    // Llamar a un procedimiento almacenado para eliminar el usuario
+    const query = 'CALL sp_eliminar_usuario(?)';
+    const [result] = await connection.promise().query(query, [id]);  // Ejecutar el query
+
+    // Verificar si el usuario fue eliminado
+    if (result.affectedRows > 0) {
+      return res.status(200).send({ message: 'Usuario eliminado correctamente.' });
+    } else {
+      return res.status(404).send({ message: 'Usuario no encontrado.' });
+    }
+  } catch (error) {
+    console.error('Error al eliminar el usuario:', error);
+    return res.status(500).send({ message: 'Error al eliminar el usuario.' });
+  }
 });
 
 //obtener perfil
@@ -247,7 +288,8 @@ app.post('/pedido', async(req, res) => {
 });
 
 //obtener carrito
-/* CARRITO AL FINAL NO EXISTE XD, asi que quedo ahi.
+
+/* CARRITO AL FINAL NO EXISTE XD, asi que quedo ahi. ---> XDDDD
 app.get('/carrito/:id', (req, res) => {
   const carritoId = req.params.id;
 
@@ -274,19 +316,16 @@ app.get('/carrito/:id', (req, res) => {
 */
 
 // pedido por ID
-app.get('/pedido/:id', (req, res) => {
+app.get('/pedido/:id', async(req, res) => {
+  let connection;
   const pedidoId = req.params.id;
 
   // Consulta para obtener los detalles del carrito específico
   // ya esta el metodo sp_leer_pedido_por_id(), devuelve la info del pedido
   // NO devuelve los productos del pedido, para eso esta el endpoint de GET /pedido/:id/productos
   // por eso me parecio medio rara la query de abajo pero vamo con los datos del pedido sin productos
-  const query = `
-    SELECT c.id AS carrito_id, c.fecha_creacion, p.id AS producto_id, p.nombre, p.categoria, p.precio, cp.cantidad, p.descripcion, p.imagen 
-    FROM carritos c
-    JOIN carrito_productos cp ON c.id = cp.carrito_id
-    JOIN productos p ON cp.producto_id = p.id
-    WHERE c.id = ?`;
+  connection = await database.getconnection();
+  const query = `sp_leer_pedido_por_id(?)`;
 
   connection.query(query, [pedidoId], (error, results) => {
     if (error) {
@@ -303,11 +342,12 @@ app.get('/pedido/:id', (req, res) => {
 });
 
 //agregar producto
-app.post('/pedido/:id/producto', (req, res) => {
+app.post('/pedido/:id/producto', async(req, res) => {
   const pedidoId = req.params.id;
   const { productoId, cantidad } = req.body;
-
+  let connection;
   // Primero, verifica si el producto ya está en el pedido
+  connection = await database.getconnection();
   const checkQuery = `
     SELECT cantidad FROM pedido_producto 
     WHERE id_pedido = ? AND id_producto = ?`;
@@ -349,9 +389,11 @@ app.post('/pedido/:id/producto', (req, res) => {
 
 /*/eliminar producto terminar*************************************YA EStA
 *USaR sp_eliminar_producto_de_pedido_producto(pedidoId, productoId)*************************************/
-app.delete('/pedido/:id/producto/:productoId', (req, res) => {
+app.delete('/pedido/:id/producto/:productoId', async(req, res) => {
+  let connection;
   const pedidoId = req.params.id;
   const productoId = req.params.productoId;
+  connection = await database.getconnection();
 
   // Consulta para eliminar el producto del carrito
   const deleteQuery = `call sp_eliminar_producto_de_pedido_producto(?, ?)`;
@@ -374,11 +416,12 @@ app.delete('/pedido/:id/producto/:productoId', (req, res) => {
 
 
 //Método Obtener pedidos
-app.get('/pedidos', (req, res) => {
+app.get('/pedidos', async(req, res) => {
+  let connection;
   const cantidad = req.query.cantidad ? parseInt(req.query.cantidad) : 10; // Por defecto 10
   const estado = req.query.estado; // Opcional, para filtrar por estado
   const fecha = req.query.fecha; // Opcional, para filtrar por fecha
-
+  connection = await database.getconnection();
   // Construcción de la consulta SQL con los filtros opcionales
   let query = `call sp_leer_pedidos()`;
   const queryParams = [];
@@ -410,9 +453,10 @@ app.get('/pedidos', (req, res) => {
 
 //Método obtener productos de un pedido ***********LISTOlA, sp_leer_pedido_productos(idpedido)************************************************************
 
-app.get('/pedido/:id/productos', (req, res) => {
+app.get('/pedido/:id/productos', async(req, res) => {
+  let connection;
   const pedidoId = req.params.id;
-
+  connection = await database.getconnection();
   // Consulta para obtener los productos de un pedido
   const query = `call sp_leer_pedido_productos(?)`;
 
@@ -432,14 +476,12 @@ app.get('/pedido/:id/productos', (req, res) => {
 
 //obtener pedido por id ********Ya esta... usar sp_leer_pedido_por_id(idpedido)******************************************************************************************************
 
-app.get('/pedido/:id', (req, res) => {
+app.get('/pedido/:id', async(req, res) => {
+  let connection;
   const pedidoId = req.params.id;
-
+  connection = await database.getconnection();
   // Consulta para obtener el pedido por su ID
-  const query = `
-    SELECT id, usuario_id, estado, fecha, precio
-    FROM pedidos
-    WHERE id = ?`;
+  const query = `sp_leer_pedido_por_id(?)`;
 
   connection.query(query, [pedidoId], (error, results) => {
     if (error) {
@@ -457,10 +499,11 @@ app.get('/pedido/:id', (req, res) => {
 
 //actualizar estado de un pedido
 
-app.put('/pedido/:id/estado', (req, res) => {
+app.put('/pedido/:id/estado', async(req, res) => {
+  let connection;
   const pedidoId = req.params.id;
   const { estado } = req.body;
-
+  connection = await database.getconnection();
   // Verificar si el estado es válido
   const estadosValidos = ['pendiente', 'completado', 'cancelado'];
   if (!estadosValidos.includes(estado)) {
@@ -485,9 +528,10 @@ app.put('/pedido/:id/estado', (req, res) => {
 });
 
 //eliminar un pedido
-app.delete('/pedido/:id', (req, res) => {
+app.delete('/pedido/:id', async(req, res) => {
+  let connection;
   const pedidoId = req.params.id;
-
+  connection = await database.getconnection();
   // Consulta para eliminar el pedido (productos relacionados se eliminan automáticamente gracias a ON DELETE CASCADE)
   const query = `call sp_eliminar_pedido(?)`;
 
