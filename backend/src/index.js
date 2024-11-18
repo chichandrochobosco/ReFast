@@ -53,6 +53,16 @@ app.get('/ping', async (req, res) => {
   });
 });
 
+/*app.get('/usuario', async (req, res) => {
+  const connection = await database.getconnection();
+  connection.query('call sp_leer_usuarios()', (error, results) => {
+      if (error) {
+          console.error('Error al obtener usuarios:', error);
+          return res.status(500).send({ message: 'Error al obtener usuarios.' });
+      }
+      res.send(results); // Enviar los resultados como respuesta
+  });
+});*/
 
 //PRODUCTOS
 
@@ -90,7 +100,6 @@ app.get('/producto/:id', async(req, res) => {
 app.delete('/producto/:id', verificarAdmin, async(req, res) => {
   const connection = await database.getconnection();
   const productId = req.params.id;
-
   connection.query('call sp_eliminar_producto(?)', [productId], (error, results) => {
     if (error) {
       return res.status(500).send({ message: 'Error al eliminar el producto.' });
@@ -189,19 +198,18 @@ app.get('/usuario/:id', async (req, res) => {
   try {
     connection = await database.getconnection();
     const query = 'call sp_leer_usuario_por_id(?)';
-    connection.query(query, [usuarioId], (error, results) => {
-      
-      // Comprueba si los resultados están vacíos o si hay un error
-      if (error || !results || results[0].length === 0) {
+    connection.query(query, [usuarioId], (error, results) => {  
+      if (results.length === 0) {
         return res.status(404).send({ message: 'Usuario no encontrado.' });
       }
-      
-      // Retornar la información del usuario si se encontró
-      res.status(200).send(results[0][0]);
+  
+      // Retornar la información del usuario
+      res.status(200).send(results[0]);
     });
-  } catch(error) {
+  } catch(error){
     return res.status(500).send({ message: 'Error al recuperar el perfil del usuario.' });
   }  
+  // Consulta para seleccionar el usuario por su ID
 });
 
 app.delete('/usuario/:id', async (req, res) => {
@@ -231,7 +239,6 @@ app.delete('/usuario/:id', async (req, res) => {
     return res.status(500).send({ message: 'Error al eliminar el usuario.' });
   }
 });
-
 
 //obtener perfil
 /*app.get('/perfil/:id', (req, res) => {
