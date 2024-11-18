@@ -288,6 +288,7 @@ app.post('/pedido', async(req, res) => {
 });
 
 //obtener carrito
+
 /* CARRITO AL FINAL NO EXISTE XD, asi que quedo ahi. ---> XDDDD
 app.get('/carrito/:id', (req, res) => {
   const carritoId = req.params.id;
