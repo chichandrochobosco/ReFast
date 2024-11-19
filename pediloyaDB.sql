@@ -35,9 +35,27 @@ CREATE TABLE `categoria` (
 
 LOCK TABLES `categoria` WRITE;
 /*!40000 ALTER TABLE `categoria` DISABLE KEYS */;
-INSERT INTO `categoria` VALUES (2,'dulce'),(3,'amargo');
+INSERT INTO `categoria` VALUES (2,'dulce');
 /*!40000 ALTER TABLE `categoria` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `pediloya`.`categoria_BEFORE_DELETE` BEFORE DELETE ON `categoria` FOR EACH ROW
+BEGIN
+DELETE FROM producto_categoria WHERE id_categoria = old.id;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `estado_pedido`
@@ -195,7 +213,7 @@ CREATE TABLE `producto_categoria` (
 
 LOCK TABLES `producto_categoria` WRITE;
 /*!40000 ALTER TABLE `producto_categoria` DISABLE KEYS */;
-INSERT INTO `producto_categoria` VALUES (1,5,2),(2,6,3),(3,7,3),(4,7,2);
+INSERT INTO `producto_categoria` VALUES (1,5,2),(4,7,2);
 /*!40000 ALTER TABLE `producto_categoria` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1278,4 +1296,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-11-19 12:28:32
+-- Dump completed on 2024-11-19 13:00:36
